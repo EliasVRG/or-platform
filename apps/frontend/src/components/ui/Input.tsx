@@ -8,16 +8,24 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 export const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ label, error, className = '', ...props }, ref) => {
     return (
-      <div className="space-y-2">
-        {label && <label className="block text-sm font-medium text-gray-900">{label}</label>}
+      <div className="space-y-md">
+        {label && (
+          <label className="block text-sm font-medium text-neutral-700">
+            {label}
+          </label>
+        )}
         <input
           ref={ref}
-          className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 ${
-            error ? 'border-danger-500 bg-danger-50' : 'border-gray-300'
+          className={`w-full px-md py-md text-base border rounded-md transition-colors duration-fast placeholder:text-neutral-400 ${
+            error
+              ? 'border-danger-600 bg-danger-50 focus:ring-2 focus:ring-danger-600 focus:border-transparent'
+              : 'border-neutral-300 hover:border-neutral-400 focus:ring-2 focus:ring-brand-600 focus:border-transparent'
           } ${className}`}
           {...props}
         />
-        {error && <span className="text-sm text-danger-600">{error}</span>}
+        {error && (
+          <span className="text-sm font-medium text-danger-600">{error}</span>
+        )}
       </div>
     );
   },

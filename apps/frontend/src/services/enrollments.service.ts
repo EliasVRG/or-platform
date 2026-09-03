@@ -22,4 +22,7 @@ export const EnrollmentsService = {
 
   remove: (id: string) =>
     api.delete(`/enrollments/${id}`),
+
+  hardRemove: (id: string) =>
+    api.delete(`/enrollments/${id}/hard`),
 };

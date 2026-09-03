@@ -7,10 +7,10 @@ import { Badge } from '../../components/ui/Badge';
 import { EnrollmentForm } from './EnrollmentForm';
 import type { EnrollmentFormData } from '../../schemas/enrollment.schema';
 import type { Enrollment } from '../../types';
-import { Plus, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Edit2, Trash2, Search } from 'lucide-react';
 
 export function Enrollments() {
-  const { enrollments, createEnrollment, updateEnrollment, removeEnrollment, loading, error } = useEnrollments();
+  const { enrollments, createEnrollment, updateEnrollment, removeEnrollment, hardRemoveEnrollment, loading, error } = useEnrollments();
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedEnrollment, setSelectedEnrollment] = useState<Enrollment | undefined>();
   const [formLoading, setFormLoading] = useState(false);
@@ -49,6 +49,16 @@ export function Enrollments() {
     }
   };
 
+  const handleHardDelete = async (id: string) => {
+    if (confirm('Tem certeza que deseja deletar permanentemente esta matrícula? Esta ação não pode ser desfeita.')) {
+      try {
+        await hardRemoveEnrollment(id);
+      } catch (err) {
+        console.error('Erro ao deletar permanentemente matrícula:', err);
+      }
+    }
+  };
+
   const filteredEnrollments = enrollments.filter((enrollment) => {
     const studentName = enrollment.student?.name.toLowerCase() ?? '';
     const courseName = enrollment.course?.name.toLowerCase() ?? '';
@@ -57,13 +67,13 @@ export function Enrollments() {
     return matchesSearch && matchesStatus;
   });
 
-  if (loading) return <div className="p-6">Carregando...</div>;
+  if (loading) return <div className="p-2xl">Carregando...</div>;
 
   return (
-    <div>
+    <div className="flex flex-col h-screen">
       <Header
         title="Matrículas"
-        subtitle="Gerenciar matrículas de alunos"
+        subtitle="Gerenciar matrículas de alunos nos cursos"
         action={
           <Button onClick={() => handleOpenDialog()}>
             <Plus size={20} />
@@ -72,70 +82,111 @@ export function Enrollments() {
         }
       />
 
-      <div className="p-6 space-y-4">
-        <div className="flex gap-4">
-          <input
-            type="text"
-            placeholder="Buscar por aluno ou curso..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
-          />
-          <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value as any)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
-          >
-            <option value="all">Todos</option>
-            <option value="pending">Pendente</option>
-            <option value="active">Ativo</option>
-            <option value="canceled">Cancelado</option>
-            <option value="completed">Concluído</option>
-          </select>
-        </div>
+      <div className="flex-1 overflow-auto px-2xl py-2xl">
+        <div className="space-y-lg">
+          {/* Filters */}
+          <div className="flex flex-col sm:flex-row gap-lg">
+            <div className="flex-1 relative">
+              <Search size={18} className="absolute left-md top-1/2 transform -translate-y-1/2 text-neutral-400 pointer-events-none" />
+              <input
+                type="text"
+                placeholder="Buscar por aluno ou curso..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-lg pr-md py-md border border-neutral-300 rounded-md focus:ring-2 focus:ring-brand-600 focus:border-transparent"
+              />
+            </div>
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value as any)}
+              className="px-md py-md border border-neutral-300 rounded-md focus:ring-2 focus:ring-brand-600 focus:border-transparent text-sm"
+            >
+              <option value="all">Todos</option>
+              <option value="pending">Pendente</option>
+              <option value="active">Ativo</option>
+              <option value="completed">Concluído</option>
+              <option value="canceled">Cancelado</option>
+            </select>
+          </div>
 
-        {error && <div className="p-4 bg-danger-50 text-danger-600 rounded-lg">{error}</div>}
+          {error && (
+            <div className="p-lg bg-danger-50 text-danger-700 rounded-md border border-danger-200">
+              {error}
+            </div>
+          )}
 
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Aluno</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Curso</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Status</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Ações</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {filteredEnrollments.map((enrollment) => (
-                <tr key={enrollment.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                    {enrollment.student?.name ?? 'N/A'}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
-                    {enrollment.course?.name ?? 'N/A'}
-                  </td>
-                  <td className="px-6 py-4 text-sm">
-                    <Badge status={enrollment.status} />
-                  </td>
-                  <td className="px-6 py-4 text-sm flex gap-2">
-                    <button
-                      onClick={() => handleOpenDialog(enrollment)}
-                      className="text-brand-600 hover:text-brand-700"
-                    >
-                      <Edit2 size={18} />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(enrollment.id)}
-                      className="text-danger-600 hover:text-danger-700"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </td>
+          {/* Table */}
+          <div className="surface overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="bg-neutral-50 border-b border-neutral-200">
+                  <th className="px-lg py-md text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">Aluno</th>
+                  <th className="px-lg py-md text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">Curso</th>
+                  <th className="px-lg py-md text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">Início</th>
+                  <th className="px-lg py-md text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">Término</th>
+                  <th className="px-lg py-md text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">Status</th>
+                  <th className="px-lg py-md text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">Ações</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-neutral-200">
+                {filteredEnrollments.length > 0 ? (
+                  filteredEnrollments.map((enrollment) => (
+                    <tr key={enrollment.id} className="hover:bg-neutral-50 transition-colors">
+                      <td className="px-lg py-md text-sm font-medium text-neutral-900">
+                        {enrollment.student?.name ?? 'N/A'}
+                      </td>
+                      <td className="px-lg py-md text-sm text-neutral-600">
+                        {enrollment.course?.name ?? 'N/A'}
+                      </td>
+                      <td className="px-lg py-md text-sm text-neutral-600">
+                        {enrollment.startDate ? new Date(enrollment.startDate).toLocaleDateString('pt-BR') : '-'}
+                      </td>
+                      <td className="px-lg py-md text-sm text-neutral-600">
+                        {enrollment.endDate ? new Date(enrollment.endDate).toLocaleDateString('pt-BR') : '-'}
+                      </td>
+                      <td className="px-lg py-md text-sm">
+                        <Badge status={enrollment.status} />
+                      </td>
+                      <td className="px-lg py-md text-sm">
+                        <div className="flex gap-md">
+                          <button
+                            onClick={() => handleOpenDialog(enrollment)}
+                            className="text-brand-600 hover:text-brand-700 transition-colors p-md"
+                            title="Editar"
+                          >
+                            <Edit2 size={18} />
+                          </button>
+                          {['canceled', 'completed'].includes(enrollment.status) ? (
+                            <button
+                              onClick={() => handleHardDelete(enrollment.id)}
+                              className="text-red-700 hover:text-red-900 font-bold transition-colors p-md"
+                              title="Deletar permanentemente"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleDelete(enrollment.id)}
+                              className="text-danger-600 hover:text-danger-700 transition-colors p-md"
+                              title="Cancelar"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={6} className="px-lg py-2xl text-center text-neutral-500">
+                      Nenhuma matrícula encontrada
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 

@@ -33,4 +33,8 @@ export class CoursesRepository extends Repository<Course> {
   async deleteCourse(id: string): Promise<void> {
     await this.update(id, { status: 'inactive' });
   }
+
+  async hardDeleteCourse(id: string): Promise<void> {
+    await this.delete(id);
+  }
 }

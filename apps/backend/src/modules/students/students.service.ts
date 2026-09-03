@@ -80,4 +80,12 @@ export class StudentsService {
     await this.findOne(id);
     await this.studentsRepository.deleteStudent(id);
   }
+
+  async hardRemove(id: string): Promise<void> {
+    const student = await this.findOne(id);
+    if (student.status !== 'inactive') {
+      throw new Error('Only inactive students can be permanently deleted');
+    }
+    await this.studentsRepository.hardDeleteStudent(id);
+  }
 }

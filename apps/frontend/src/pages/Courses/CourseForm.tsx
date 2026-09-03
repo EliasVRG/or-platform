@@ -5,6 +5,7 @@ import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
 import { Button } from '../../components/ui/Button';
 import type { Course } from '../../types';
+import { useEffect } from 'react';
 
 interface CourseFormProps {
   course?: Course;
@@ -20,6 +21,8 @@ export function CourseForm({ course, onSubmit, isLoading = false }: CourseFormPr
     register,
     handleSubmit,
     formState: { errors },
+    setValue,
+    watch,
   } = useForm({
     resolver: zodResolver(courseSchema),
     defaultValues: course ? {
@@ -30,6 +33,19 @@ export function CourseForm({ course, onSubmit, isLoading = false }: CourseFormPr
       status: course.status,
     } : undefined,
   } as any);
+
+  const statusValue = watch('status');
+
+  // Atualizar valores quando course mudar
+  useEffect(() => {
+    if (course) {
+      setValue('name', course.name);
+      setValue('description', course.description || '');
+      setValue('hours', course.hours);
+      setValue('price', course.price);
+      setValue('status', course.status);
+    }
+  }, [course, setValue]);
 
   return (
     <form onSubmit={handleSubmit(onSubmit as any)} className="space-y-4">
@@ -71,6 +87,7 @@ export function CourseForm({ course, onSubmit, isLoading = false }: CourseFormPr
 
       <Select
         label="Status"
+        value={statusValue}
         {...register('status')}
         options={[
           { value: 'active', label: 'Ativo' },

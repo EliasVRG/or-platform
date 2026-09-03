@@ -69,4 +69,8 @@ export class EnrollmentsRepository extends Repository<Enrollment> {
   async deleteEnrollment(id: string): Promise<void> {
     await this.update(id, { status: 'canceled' });
   }
+
+  async hardDeleteEnrollment(id: string): Promise<void> {
+    await this.delete(id);
+  }
 }

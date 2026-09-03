@@ -41,6 +41,11 @@ export function useStudents() {
     setStudents((prev) => prev.filter((s) => s.id !== id));
   };
 
+  const hardRemoveStudent = async (id: string) => {
+    await StudentsService.hardRemove(id);
+    setStudents((prev) => prev.filter((s) => s.id !== id));
+  };
+
   return {
     students,
     loading,
@@ -49,5 +54,6 @@ export function useStudents() {
     createStudent,
     updateStudent,
     removeStudent,
+    hardRemoveStudent,
   };
 }

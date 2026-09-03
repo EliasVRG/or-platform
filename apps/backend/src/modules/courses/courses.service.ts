@@ -43,4 +43,12 @@ export class CoursesService {
     await this.findOne(id);
     await this.coursesRepository.deleteCourse(id);
   }
+
+  async hardRemove(id: string): Promise<void> {
+    const course = await this.findOne(id);
+    if (course.status !== 'inactive') {
+      throw new Error('Only inactive courses can be permanently deleted');
+    }
+    await this.coursesRepository.hardDeleteCourse(id);
+  }
 }

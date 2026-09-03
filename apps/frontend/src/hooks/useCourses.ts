@@ -41,6 +41,11 @@ export function useCourses() {
     setCourses((prev) => prev.filter((c) => c.id !== id));
   };
 
+  const hardRemoveCourse = async (id: string) => {
+    await CoursesService.hardRemove(id);
+    setCourses((prev) => prev.filter((c) => c.id !== id));
+  };
+
   return {
     courses,
     loading,
@@ -49,5 +54,6 @@ export function useCourses() {
     createCourse,
     updateCourse,
     removeCourse,
+    hardRemoveCourse,
   };
 }

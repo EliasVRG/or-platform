@@ -41,6 +41,11 @@ export function useEnrollments() {
     setEnrollments((prev) => prev.filter((e) => e.id !== id));
   };
 
+  const hardRemoveEnrollment = async (id: string) => {
+    await EnrollmentsService.hardRemove(id);
+    setEnrollments((prev) => prev.filter((e) => e.id !== id));
+  };
+
   return {
     enrollments,
     loading,
@@ -49,5 +54,6 @@ export function useEnrollments() {
     createEnrollment,
     updateEnrollment,
     removeEnrollment,
+    hardRemoveEnrollment,
   };
 }

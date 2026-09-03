@@ -55,11 +55,11 @@ async function bootstrap() {
   const port = configService.get('APP_PORT') || 3000;
   await app.listen(port, '0.0.0.0');
 
-  console.log(`✅ Application running on http://localhost:${port}`);
-  console.log(`📚 Swagger available on http://localhost:${port}/api/docs`);
+  console.log(`Application running on http://localhost:${port}`);
+  console.log(`Swagger available on http://localhost:${port}/api/docs`);
 }
 
 bootstrap().catch((error) => {
-  console.error('❌ Application failed to start:', error);
+  console.error('Application failed to start:', error);
   process.exit(1);
 });

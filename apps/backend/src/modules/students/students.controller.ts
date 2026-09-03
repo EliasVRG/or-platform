@@ -101,4 +101,17 @@ export class StudentsController {
   async remove(@Param('id') id: string) {
     await this.studentsService.remove(id);
   }
+
+  @Delete(':id/hard')
+  @ApiOperation({ summary: 'Permanently delete an inactive student' })
+  @ApiParam({ name: 'id', description: 'Student ID' })
+  @ApiResponse({
+    status: HttpStatus.NO_CONTENT,
+    description: 'Student permanently deleted',
+  })
+  @ApiNotFoundResponse({ description: 'Student not found' })
+  @ApiBadRequestResponse({ description: 'Only inactive students can be deleted' })
+  async hardRemove(@Param('id') id: string) {
+    await this.studentsService.hardRemove(id);
+  }
 }

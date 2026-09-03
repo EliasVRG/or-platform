@@ -180,4 +180,12 @@ export class EnrollmentsService {
     await this.findOne(id);
     await this.enrollmentsRepository.deleteEnrollment(id);
   }
+
+  async hardRemove(id: string): Promise<void> {
+    const enrollment = await this.findOne(id);
+    if (!['canceled', 'completed'].includes(enrollment.status)) {
+      throw new Error('Only canceled or completed enrollments can be permanently deleted');
+    }
+    await this.enrollmentsRepository.hardDeleteEnrollment(id);
+  }
 }

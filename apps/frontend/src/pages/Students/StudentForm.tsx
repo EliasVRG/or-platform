@@ -5,6 +5,7 @@ import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
 import { Button } from '../../components/ui/Button';
 import type { Student } from '../../types';
+import { useEffect } from 'react';
 
 interface StudentFormProps {
   student?: Student;
@@ -20,6 +21,8 @@ export function StudentForm({ student, onSubmit, isLoading = false }: StudentFor
     register,
     handleSubmit,
     formState: { errors },
+    setValue,
+    watch,
   } = useForm({
     resolver: zodResolver(studentSchema),
     defaultValues: student ? {
@@ -30,6 +33,19 @@ export function StudentForm({ student, onSubmit, isLoading = false }: StudentFor
       status: student.status,
     } : undefined,
   } as any);
+
+  const statusValue = watch('status');
+
+  // Atualizar valores quando student mudar
+  useEffect(() => {
+    if (student) {
+      setValue('name', student.name);
+      setValue('email', student.email);
+      setValue('cpf', student.cpf);
+      setValue('phone', student.phone || '');
+      setValue('status', student.status);
+    }
+  }, [student, setValue]);
 
   return (
     <form onSubmit={handleSubmit(onSubmit as any)} className="space-y-4">
@@ -64,6 +80,7 @@ export function StudentForm({ student, onSubmit, isLoading = false }: StudentFor
 
       <Select
         label="Status"
+        value={statusValue}
         {...register('status')}
         options={[
           { value: 'active', label: 'Ativo' },

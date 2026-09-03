@@ -101,4 +101,17 @@ export class CoursesController {
   async remove(@Param('id') id: string) {
     await this.coursesService.remove(id);
   }
+
+  @Delete(':id/hard')
+  @ApiOperation({ summary: 'Permanently delete an inactive course' })
+  @ApiParam({ name: 'id', description: 'Course ID' })
+  @ApiResponse({
+    status: HttpStatus.NO_CONTENT,
+    description: 'Course permanently deleted',
+  })
+  @ApiNotFoundResponse({ description: 'Course not found' })
+  @ApiBadRequestResponse({ description: 'Only inactive courses can be deleted' })
+  async hardRemove(@Param('id') id: string) {
+    await this.coursesService.hardRemove(id);
+  }
 }

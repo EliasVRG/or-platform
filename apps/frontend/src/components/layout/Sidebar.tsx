@@ -10,44 +10,47 @@ export function Sidebar() {
   ];
 
   return (
-    <div className="w-64 bg-brand-900 text-white flex flex-col">
-      {/* Logo */}
-      <div className="p-6 border-b border-brand-800">
-        <h1 className="text-2xl font-bold">OR Platform</h1>
-        <p className="text-xs text-brand-200">Grupo Oliveira Rocha</p>
+    <div className="w-56 bg-navy-900 text-white flex flex-col border-r border-navy-900">
+      {/* Logo Section */}
+      <div className="px-lg py-2xl border-b border-white/10">
+        <h1 className="text-xl font-bold tracking-tight">OR Platform</h1>
+        <p className="text-xs text-white/60 mt-sm">Gerenciamento Educacional</p>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4">
-        <ul className="space-y-2">
+      <nav className="flex-1 overflow-y-auto px-sm py-lg">
+        <ul className="space-y-xs">
           {navItems.map(({ label, href, icon: Icon }) => (
             <li key={href}>
               <NavLink
                 to={href}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                  `flex items-center gap-md px-md py-md rounded-md transition-all duration-fast group ${
                     isActive
-                      ? 'bg-brand-50 text-brand-600'
-                      : 'text-brand-200 hover:bg-brand-800'
+                      ? 'bg-brand-600 text-white shadow-sm'
+                      : 'text-white/70 hover:bg-white/10 hover:text-white'
                   }`
                 }
               >
-                <Icon size={20} />
-                <span>{label}</span>
+                <Icon size={20} className="flex-shrink-0" strokeWidth={1.5} />
+                <span className="text-sm font-medium">{label}</span>
               </NavLink>
             </li>
           ))}
         </ul>
       </nav>
 
-      {/* Footer */}
-      <div className="p-4 border-t border-brand-800 flex items-center gap-3">
-        <div className="w-10 h-10 rounded-full bg-brand-400 flex items-center justify-center">
-          <span className="text-sm font-bold">AR</span>
+      {/* Divider */}
+      <div className="mx-md h-px bg-white/10" />
+
+      {/* User Section */}
+      <div className="px-md py-lg flex items-center gap-md">
+        <div className="w-8 h-8 rounded-md bg-brand-600 flex items-center justify-center flex-shrink-0">
+          <span className="text-xs font-bold">A</span>
         </div>
-        <div className="text-sm">
-          <p className="font-semibold">Admin</p>
-          <p className="text-xs text-brand-200">admin@orplatform.com</p>
+        <div className="min-w-0">
+          <p className="text-sm font-medium truncate">Professor</p>
+          <p className="text-xs text-white/60 truncate">admin@platform</p>
         </div>
       </div>
     </div>

@@ -128,4 +128,17 @@ export class EnrollmentsController {
   async remove(@Param('id') id: string) {
     await this.enrollmentsService.remove(id);
   }
+
+  @Delete(':id/hard')
+  @ApiOperation({ summary: 'Permanently delete a canceled or completed enrollment' })
+  @ApiParam({ name: 'id', description: 'Enrollment ID' })
+  @ApiResponse({
+    status: HttpStatus.NO_CONTENT,
+    description: 'Enrollment permanently deleted',
+  })
+  @ApiNotFoundResponse({ description: 'Enrollment not found' })
+  @ApiBadRequestResponse({ description: 'Only canceled or completed enrollments can be deleted' })
+  async hardRemove(@Param('id') id: string) {
+    await this.enrollmentsService.hardRemove(id);
+  }
 }
