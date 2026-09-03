@@ -1,0 +1,7 @@
+packages:
+  - 'packages/*'
+  - 'apps/backend'
+  - 'apps/web'
+allowBuilds:
+  '@nestjs/core': true
+  '@scarf/scarf': true
