@@ -1,6 +1,6 @@
 [build]
   base = "/"
-  command = "pnpm install && pnpm --filter frontend build"
+  command = "pnpm install --shamefully-hoist && pnpm --filter frontend build"
   publish = "apps/frontend/dist"
 
 [[redirects]]
