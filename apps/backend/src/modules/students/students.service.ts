@@ -2,15 +2,23 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ConflictException,
 } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { StudentsRepository } from './students.repository';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
 import { Student } from './entities/student.entity';
+import { Enrollment } from '../enrollments/entities/enrollment.entity';
 
 @Injectable()
 export class StudentsService {
-  constructor(private studentsRepository: StudentsRepository) {}
+  constructor(
+    private studentsRepository: StudentsRepository,
+    @InjectRepository(Enrollment)
+    private enrollmentsRepository: Repository<Enrollment>,
+  ) {}
 
   async create(createStudentDto: CreateStudentDto): Promise<Student> {
     const existingEmail = await this.studentsRepository.findByEmail(
@@ -84,8 +92,20 @@ export class StudentsService {
   async hardRemove(id: string): Promise<void> {
     const student = await this.findOne(id);
     if (student.status !== 'inactive') {
-      throw new Error('Only inactive students can be permanently deleted');
+      throw new BadRequestException(
+        'Only inactive students can be permanently deleted',
+      );
     }
+
+    const dependentEnrollments = await this.enrollmentsRepository.count({
+      where: { studentId: id },
+    });
+    if (dependentEnrollments > 0) {
+      throw new ConflictException(
+        `Não é possível excluir permanentemente: existem ${dependentEnrollments} matrícula(s) vinculada(s) a este aluno. Remova ou cancele as matrículas primeiro.`,
+      );
+    }
+
     await this.studentsRepository.hardDeleteStudent(id);
   }
 }

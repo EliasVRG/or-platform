@@ -7,13 +7,14 @@ import {
   ManyToOne,
   JoinColumn,
   Index,
-  Unique,
 } from 'typeorm';
 import { Student } from '../../students/entities/student.entity';
 import { Course } from '../../courses/entities/course.entity';
 
+// Não há constraint UNIQUE incondicional em (student, course): a regra de negócio
+// permite reinscrever um aluno no mesmo curso após cancelamento. A duplicidade
+// de matrícula ATIVA é validada em EnrollmentsService.create.
 @Entity('enrollments')
-@Unique(['student', 'course'])
 @Index(['student'])
 @Index(['course'])
 export class Enrollment {

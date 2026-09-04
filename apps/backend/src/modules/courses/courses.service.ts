@@ -1,12 +1,24 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  ConflictException,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { CoursesRepository } from './courses.repository';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
 import { Course } from './entities/course.entity';
+import { Enrollment } from '../enrollments/entities/enrollment.entity';
 
 @Injectable()
 export class CoursesService {
-  constructor(private coursesRepository: CoursesRepository) {}
+  constructor(
+    private coursesRepository: CoursesRepository,
+    @InjectRepository(Enrollment)
+    private enrollmentsRepository: Repository<Enrollment>,
+  ) {}
 
   async create(createCourseDto: CreateCourseDto): Promise<Course> {
     return this.coursesRepository.createCourse({
@@ -47,8 +59,20 @@ export class CoursesService {
   async hardRemove(id: string): Promise<void> {
     const course = await this.findOne(id);
     if (course.status !== 'inactive') {
-      throw new Error('Only inactive courses can be permanently deleted');
+      throw new BadRequestException(
+        'Only inactive courses can be permanently deleted',
+      );
     }
+
+    const dependentEnrollments = await this.enrollmentsRepository.count({
+      where: { courseId: id },
+    });
+    if (dependentEnrollments > 0) {
+      throw new ConflictException(
+        `Não é possível excluir permanentemente: existem ${dependentEnrollments} matrícula(s) vinculada(s) a este curso. Remova ou cancele as matrículas primeiro.`,
+      );
+    }
+
     await this.coursesRepository.hardDeleteCourse(id);
   }
 }

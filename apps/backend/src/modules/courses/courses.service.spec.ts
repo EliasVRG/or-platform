@@ -1,9 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
+import { getRepositoryToken } from '@nestjs/typeorm';
 import { CoursesService } from './courses.service';
 import { CoursesRepository } from './courses.repository';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
+import { Enrollment } from '../enrollments/entities/enrollment.entity';
 
 describe('CoursesService', () => {
   let service: CoursesService;
@@ -34,6 +36,13 @@ describe('CoursesService', () => {
             findOne: jest.fn(),
             updateCourse: jest.fn(),
             deleteCourse: jest.fn(),
+            hardDeleteCourse: jest.fn(),
+          },
+        },
+        {
+          provide: getRepositoryToken(Enrollment),
+          useValue: {
+            count: jest.fn().mockResolvedValue(0),
           },
         },
       ],

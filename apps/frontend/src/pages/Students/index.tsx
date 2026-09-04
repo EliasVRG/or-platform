@@ -3,6 +3,7 @@ import { useStudents } from '../../hooks/useStudents';
 import { Header } from '../../components/layout/Header';
 import { Button } from '../../components/ui/Button';
 import { Dialog } from '../../components/ui/Dialog';
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { Badge } from '../../components/ui/Badge';
 import { StudentForm } from './StudentForm';
 import type { StudentFormData } from '../../schemas/student.schema';
@@ -16,6 +17,9 @@ export function Students() {
   const [formLoading, setFormLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [confirmTarget, setConfirmTarget] = useState<{ id: string; mode: 'soft' | 'hard' } | null>(null);
+  const [confirmLoading, setConfirmLoading] = useState(false);
 
   const handleOpenDialog = (student?: Student) => {
     setSelectedStudent(student);
@@ -24,6 +28,7 @@ export function Students() {
 
   const handleSubmit = async (data: StudentFormData) => {
     setFormLoading(true);
+    setActionError(null);
     try {
       if (selectedStudent) {
         await updateStudent(selectedStudent.id, data);
@@ -33,29 +38,27 @@ export function Students() {
       setOpenDialog(false);
       setSelectedStudent(undefined);
     } catch (err) {
-      console.error('Erro ao salvar aluno:', err);
+      setActionError((err as Error).message);
     } finally {
       setFormLoading(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Tem certeza que deseja deletar este aluno?')) {
-      try {
-        await removeStudent(id);
-      } catch (err) {
-        console.error('Erro ao deletar aluno:', err);
+  const handleConfirmDelete = async () => {
+    if (!confirmTarget) return;
+    setConfirmLoading(true);
+    setActionError(null);
+    try {
+      if (confirmTarget.mode === 'hard') {
+        await hardRemoveStudent(confirmTarget.id);
+      } else {
+        await removeStudent(confirmTarget.id);
       }
-    }
-  };
-
-  const handleHardDelete = async (id: string) => {
-    if (confirm('Tem certeza que deseja deletar permanentemente este aluno? Esta ação não pode ser desfeita.')) {
-      try {
-        await hardRemoveStudent(id);
-      } catch (err) {
-        console.error('Erro ao deletar permanentemente aluno:', err);
-      }
+      setConfirmTarget(null);
+    } catch (err) {
+      setActionError((err as Error).message);
+    } finally {
+      setConfirmLoading(false);
     }
   };
 
@@ -107,9 +110,9 @@ export function Students() {
             </select>
           </div>
 
-          {error && (
+          {(error || actionError) && (
             <div className="p-lg bg-danger-50 text-danger-700 rounded-md border border-danger-200">
-              {error}
+              {error || actionError}
             </div>
           )}
 
@@ -148,7 +151,7 @@ export function Students() {
                           </button>
                           {student.status === 'active' ? (
                             <button
-                              onClick={() => handleDelete(student.id)}
+                              onClick={() => setConfirmTarget({ id: student.id, mode: 'soft' })}
                               className="text-danger-600 hover:text-danger-700 transition-colors p-md"
                               title="Marcar como inativo"
                             >
@@ -156,7 +159,7 @@ export function Students() {
                             </button>
                           ) : (
                             <button
-                              onClick={() => handleHardDelete(student.id)}
+                              onClick={() => setConfirmTarget({ id: student.id, mode: 'hard' })}
                               className="text-red-700 hover:text-red-900 font-bold transition-colors p-md"
                               title="Deletar permanentemente"
                             >
@@ -191,6 +194,21 @@ export function Students() {
           isLoading={formLoading}
         />
       </Dialog>
+
+      <ConfirmDialog
+        open={confirmTarget !== null}
+        onOpenChange={(open) => !open && setConfirmTarget(null)}
+        onConfirm={handleConfirmDelete}
+        loading={confirmLoading}
+        variant={confirmTarget?.mode === 'hard' ? 'danger' : 'warning'}
+        title={confirmTarget?.mode === 'hard' ? 'Excluir permanentemente' : 'Inativar aluno'}
+        description={
+          confirmTarget?.mode === 'hard'
+            ? 'Este aluno será excluído permanentemente do banco de dados. Se houver matrículas vinculadas, a exclusão será bloqueada. Esta ação não pode ser desfeita.'
+            : 'O aluno será marcado como inativo. Você pode reverter isso editando o cadastro depois.'
+        }
+        confirmLabel={confirmTarget?.mode === 'hard' ? 'Excluir permanentemente' : 'Inativar'}
+      />
     </div>
   );
 }

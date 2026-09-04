@@ -57,7 +57,7 @@ export class EnrollmentsService {
       );
     }
 
-    return this.enrollmentsRepository.createEnrollment({
+    const created = await this.enrollmentsRepository.createEnrollment({
       studentId: createEnrollmentDto.studentId,
       courseId: createEnrollmentDto.courseId,
       status: createEnrollmentDto.status || 'pending',
@@ -68,6 +68,10 @@ export class EnrollmentsService {
         ? new Date(createEnrollmentDto.endDate)
         : undefined,
     });
+
+    // save() não recarrega as relações eager; buscamos novamente para que a
+    // resposta já venha com student/course populados.
+    return this.findOne(created.id);
   }
 
   async findAll(): Promise<Enrollment[]> {
@@ -184,7 +188,9 @@ export class EnrollmentsService {
   async hardRemove(id: string): Promise<void> {
     const enrollment = await this.findOne(id);
     if (!['canceled', 'completed'].includes(enrollment.status)) {
-      throw new Error('Only canceled or completed enrollments can be permanently deleted');
+      throw new BadRequestException(
+        'Only canceled or completed enrollments can be permanently deleted',
+      );
     }
     await this.enrollmentsRepository.hardDeleteEnrollment(id);
   }

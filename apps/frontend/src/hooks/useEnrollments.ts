@@ -38,7 +38,7 @@ export function useEnrollments() {
 
   const removeEnrollment = async (id: string) => {
     await EnrollmentsService.remove(id);
-    setEnrollments((prev) => prev.filter((e) => e.id !== id));
+    setEnrollments((prev) => prev.map((e) => (e.id === id ? { ...e, status: 'canceled' } : e)));
   };
 
   const hardRemoveEnrollment = async (id: string) => {

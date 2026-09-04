@@ -38,7 +38,7 @@ export function useStudents() {
 
   const removeStudent = async (id: string) => {
     await StudentsService.remove(id);
-    setStudents((prev) => prev.filter((s) => s.id !== id));
+    setStudents((prev) => prev.map((s) => (s.id === id ? { ...s, status: 'inactive' } : s)));
   };
 
   const hardRemoveStudent = async (id: string) => {

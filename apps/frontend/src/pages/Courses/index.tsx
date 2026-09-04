@@ -3,6 +3,7 @@ import { useCourses } from '../../hooks/useCourses';
 import { Header } from '../../components/layout/Header';
 import { Button } from '../../components/ui/Button';
 import { Dialog } from '../../components/ui/Dialog';
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { Badge } from '../../components/ui/Badge';
 import { CourseForm } from './CourseForm';
 import type { CourseFormData } from '../../schemas/course.schema';
@@ -16,6 +17,9 @@ export function Courses() {
   const [formLoading, setFormLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [confirmTarget, setConfirmTarget] = useState<{ id: string; mode: 'soft' | 'hard' } | null>(null);
+  const [confirmLoading, setConfirmLoading] = useState(false);
 
   const handleOpenDialog = (course?: Course) => {
     setSelectedCourse(course);
@@ -24,6 +28,7 @@ export function Courses() {
 
   const handleSubmit = async (data: CourseFormData) => {
     setFormLoading(true);
+    setActionError(null);
     try {
       if (selectedCourse) {
         await updateCourse(selectedCourse.id, data);
@@ -33,29 +38,27 @@ export function Courses() {
       setOpenDialog(false);
       setSelectedCourse(undefined);
     } catch (err) {
-      console.error('Erro ao salvar curso:', err);
+      setActionError((err as Error).message);
     } finally {
       setFormLoading(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Tem certeza que deseja deletar este curso?')) {
-      try {
-        await removeCourse(id);
-      } catch (err) {
-        console.error('Erro ao deletar curso:', err);
+  const handleConfirmDelete = async () => {
+    if (!confirmTarget) return;
+    setConfirmLoading(true);
+    setActionError(null);
+    try {
+      if (confirmTarget.mode === 'hard') {
+        await hardRemoveCourse(confirmTarget.id);
+      } else {
+        await removeCourse(confirmTarget.id);
       }
-    }
-  };
-
-  const handleHardDelete = async (id: string) => {
-    if (confirm('Tem certeza que deseja deletar permanentemente este curso? Esta ação não pode ser desfeita.')) {
-      try {
-        await hardRemoveCourse(id);
-      } catch (err) {
-        console.error('Erro ao deletar permanentemente curso:', err);
-      }
+      setConfirmTarget(null);
+    } catch (err) {
+      setActionError((err as Error).message);
+    } finally {
+      setConfirmLoading(false);
     }
   };
 
@@ -106,9 +109,9 @@ export function Courses() {
             </select>
           </div>
 
-          {error && (
+          {(error || actionError) && (
             <div className="p-lg bg-danger-50 text-danger-700 rounded-md border border-danger-200">
-              {error}
+              {error || actionError}
             </div>
           )}
 
@@ -145,7 +148,7 @@ export function Courses() {
                           </button>
                           {course.status === 'active' ? (
                             <button
-                              onClick={() => handleDelete(course.id)}
+                              onClick={() => setConfirmTarget({ id: course.id, mode: 'soft' })}
                               className="text-danger-600 hover:text-danger-700 transition-colors p-md"
                               title="Marcar como inativo"
                             >
@@ -153,7 +156,7 @@ export function Courses() {
                             </button>
                           ) : (
                             <button
-                              onClick={() => handleHardDelete(course.id)}
+                              onClick={() => setConfirmTarget({ id: course.id, mode: 'hard' })}
                               className="text-red-700 hover:text-red-900 font-bold transition-colors p-md"
                               title="Deletar permanentemente"
                             >
@@ -188,6 +191,21 @@ export function Courses() {
           isLoading={formLoading}
         />
       </Dialog>
+
+      <ConfirmDialog
+        open={confirmTarget !== null}
+        onOpenChange={(open) => !open && setConfirmTarget(null)}
+        onConfirm={handleConfirmDelete}
+        loading={confirmLoading}
+        variant={confirmTarget?.mode === 'hard' ? 'danger' : 'warning'}
+        title={confirmTarget?.mode === 'hard' ? 'Excluir permanentemente' : 'Inativar curso'}
+        description={
+          confirmTarget?.mode === 'hard'
+            ? 'Este curso será excluído permanentemente do banco de dados. Esta ação não pode ser desfeita.'
+            : 'O curso será marcado como inativo. Você pode reverter isso editando o curso depois.'
+        }
+        confirmLabel={confirmTarget?.mode === 'hard' ? 'Excluir permanentemente' : 'Inativar'}
+      />
     </div>
   );
 }

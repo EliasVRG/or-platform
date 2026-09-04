@@ -118,6 +118,7 @@ describe('EnrollmentsService', () => {
         null,
       );
       enrollmentsRepository.createEnrollment.mockResolvedValueOnce(mockEnrollment);
+      enrollmentsRepository.findOne.mockResolvedValueOnce(mockEnrollment);
 
       const result = await service.create(createEnrollmentDto);
 

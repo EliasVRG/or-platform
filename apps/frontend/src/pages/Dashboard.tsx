@@ -14,6 +14,7 @@ export function Dashboard() {
   const totalEnrollments = enrollments.length;
   const completedEnrollments = enrollments.filter(e => e.status === 'completed').length;
   const activeEnrollments = enrollments.filter(e => e.status === 'active').length;
+  const pendingEnrollments = enrollments.filter(e => e.status === 'pending').length;
   const completionPercent = totalEnrollments > 0 ? Math.round((completedEnrollments / totalEnrollments) * 100) : 0;
 
   const enrollmentStatusData = [
@@ -78,7 +79,7 @@ export function Dashboard() {
               </div>
               <div className="text-center">
                 <p className="text-neutral-600">Pendentes</p>
-                <p className="text-2xl font-bold text-neutral-600">{totalEnrollments - completedEnrollments - activeEnrollments}</p>
+                <p className="text-2xl font-bold text-neutral-600">{pendingEnrollments}</p>
               </div>
             </div>
           </div>

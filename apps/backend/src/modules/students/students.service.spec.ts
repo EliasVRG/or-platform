@@ -1,8 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
+import { getRepositoryToken } from '@nestjs/typeorm';
 import { StudentsService } from './students.service';
 import { StudentsRepository } from './students.repository';
 import { CreateStudentDto } from './dto/create-student.dto';
+import { Enrollment } from '../enrollments/entities/enrollment.entity';
 
 describe('StudentsService', () => {
   let service: StudentsService;
@@ -35,6 +37,13 @@ describe('StudentsService', () => {
             findByCpf: jest.fn(),
             updateStudent: jest.fn(),
             deleteStudent: jest.fn(),
+            hardDeleteStudent: jest.fn(),
+          },
+        },
+        {
+          provide: getRepositoryToken(Enrollment),
+          useValue: {
+            count: jest.fn().mockResolvedValue(0),
           },
         },
       ],

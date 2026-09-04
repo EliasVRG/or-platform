@@ -3,12 +3,13 @@ import { useEnrollments } from '../../hooks/useEnrollments';
 import { Header } from '../../components/layout/Header';
 import { Button } from '../../components/ui/Button';
 import { Dialog } from '../../components/ui/Dialog';
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { Badge } from '../../components/ui/Badge';
 import { EnrollmentForm } from './EnrollmentForm';
+import { formatDate } from '../../utils/date';
 import type { EnrollmentFormData } from '../../schemas/enrollment.schema';
 import type { Enrollment } from '../../types';
 import { Plus, Edit2, Trash2, Search } from 'lucide-react';
-import { input } from 'zod';
 
 export function Enrollments() {
   const { enrollments, createEnrollment, updateEnrollment, removeEnrollment, hardRemoveEnrollment, loading, error } = useEnrollments();
@@ -17,6 +18,9 @@ export function Enrollments() {
   const [formLoading, setFormLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'active' | 'canceled' | 'completed'>('all');
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [confirmTarget, setConfirmTarget] = useState<{ id: string; mode: 'soft' | 'hard' } | null>(null);
+  const [confirmLoading, setConfirmLoading] = useState(false);
 
   const handleOpenDialog = (enrollment?: Enrollment) => {
     setSelectedEnrollment(enrollment);
@@ -25,6 +29,7 @@ export function Enrollments() {
 
   const handleSubmit = async (data: EnrollmentFormData) => {
     setFormLoading(true);
+    setActionError(null);
     try {
       if (selectedEnrollment) {
         await updateEnrollment(selectedEnrollment.id, data);
@@ -34,29 +39,27 @@ export function Enrollments() {
       setOpenDialog(false);
       setSelectedEnrollment(undefined);
     } catch (err) {
-      console.error('Erro ao salvar matrícula:', err);
+      setActionError((err as Error).message);
     } finally {
       setFormLoading(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Tem certeza que deseja cancelar esta matrícula?')) {
-      try {
-        await removeEnrollment(id);
-      } catch (err) {
-        console.error('Erro ao cancelar matrícula:', err);
+  const handleConfirmDelete = async () => {
+    if (!confirmTarget) return;
+    setConfirmLoading(true);
+    setActionError(null);
+    try {
+      if (confirmTarget.mode === 'hard') {
+        await hardRemoveEnrollment(confirmTarget.id);
+      } else {
+        await removeEnrollment(confirmTarget.id);
       }
-    }
-  };
-
-  const handleHardDelete = async (id: string) => {
-    if (confirm('Tem certeza que deseja deletar permanentemente esta matrícula? Esta ação não pode ser desfeita.')) {
-      try {
-        await hardRemoveEnrollment(id);
-      } catch (err) {
-        console.error('Erro ao deletar permanentemente matrícula:', err);
-      }
+      setConfirmTarget(null);
+    } catch (err) {
+      setActionError((err as Error).message);
+    } finally {
+      setConfirmLoading(false);
     }
   };
 
@@ -110,9 +113,9 @@ export function Enrollments() {
             </select>
           </div>
 
-          {error && (
+          {(error || actionError) && (
             <div className="p-lg bg-danger-50 text-danger-700 rounded-md border border-danger-200">
-              {error}
+              {error || actionError}
             </div>
           )}
 
@@ -140,10 +143,10 @@ export function Enrollments() {
                         {enrollment.course?.name ?? 'N/A'}
                       </td>
                       <td className="px-lg py-md text-sm text-neutral-600">
-                        {enrollment.startDate ? new Date(enrollment.startDate).toLocaleDateString('pt-BR') : '-'}
+                        {formatDate(enrollment.startDate)}
                       </td>
                       <td className="px-lg py-md text-sm text-neutral-600">
-                        {enrollment.endDate ? new Date(enrollment.endDate).toLocaleDateString('pt-BR') : '-'}
+                        {formatDate(enrollment.endDate)}
                       </td>
                       <td className="px-lg py-md text-sm">
                         <Badge status={enrollment.status} />
@@ -159,7 +162,7 @@ export function Enrollments() {
                           </button>
                           {['canceled', 'completed'].includes(enrollment.status) ? (
                             <button
-                              onClick={() => handleHardDelete(enrollment.id)}
+                              onClick={() => setConfirmTarget({ id: enrollment.id, mode: 'hard' })}
                               className="text-red-700 hover:text-red-900 font-bold transition-colors p-md"
                               title="Deletar permanentemente"
                             >
@@ -167,7 +170,7 @@ export function Enrollments() {
                             </button>
                           ) : (
                             <button
-                              onClick={() => handleDelete(enrollment.id)}
+                              onClick={() => setConfirmTarget({ id: enrollment.id, mode: 'soft' })}
                               className="text-danger-600 hover:text-danger-700 transition-colors p-md"
                               title="Cancelar"
                             >
@@ -202,6 +205,21 @@ export function Enrollments() {
           isLoading={formLoading}
         />
       </Dialog>
+
+      <ConfirmDialog
+        open={confirmTarget !== null}
+        onOpenChange={(open) => !open && setConfirmTarget(null)}
+        onConfirm={handleConfirmDelete}
+        loading={confirmLoading}
+        variant={confirmTarget?.mode === 'hard' ? 'danger' : 'warning'}
+        title={confirmTarget?.mode === 'hard' ? 'Excluir permanentemente' : 'Cancelar matrícula'}
+        description={
+          confirmTarget?.mode === 'hard'
+            ? 'Esta matrícula será excluída permanentemente do banco de dados. Esta ação não pode ser desfeita.'
+            : 'A matrícula será marcada como cancelada. Você pode reverter isso editando a matrícula depois.'
+        }
+        confirmLabel={confirmTarget?.mode === 'hard' ? 'Excluir permanentemente' : 'Cancelar matrícula'}
+      />
     </div>
   );
 }

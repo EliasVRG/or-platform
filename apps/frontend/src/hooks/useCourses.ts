@@ -38,7 +38,7 @@ export function useCourses() {
 
   const removeCourse = async (id: string) => {
     await CoursesService.remove(id);
-    setCourses((prev) => prev.filter((c) => c.id !== id));
+    setCourses((prev) => prev.map((c) => (c.id === id ? { ...c, status: 'inactive' } : c)));
   };
 
   const hardRemoveCourse = async (id: string) => {

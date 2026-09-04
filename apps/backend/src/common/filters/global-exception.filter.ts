@@ -7,6 +7,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { Response } from 'express';
+import { QueryFailedError } from 'typeorm';
 
 interface ErrorResponse {
   statusCode: number;
@@ -42,6 +43,15 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     } else if (exception instanceof BadRequestException) {
       status = HttpStatus.BAD_REQUEST;
       error = 'Bad Request';
+    } else if (exception instanceof QueryFailedError) {
+      // Nunca propagar a mensagem crua do driver do banco (ex.: constraint names)
+      status = HttpStatus.CONFLICT;
+      error = 'Conflict';
+      const code = (exception as QueryFailedError & { code?: string }).code;
+      message =
+        code === '23505'
+          ? 'Já existe um registro com esses dados.'
+          : 'Não foi possível concluir a operação por uma restrição do banco de dados.';
     } else if (exception instanceof Error) {
       message = exception.message;
     }
