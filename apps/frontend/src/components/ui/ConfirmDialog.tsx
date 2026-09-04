@@ -13,6 +13,8 @@ interface ConfirmDialogProps {
   /** 'danger' = ação permanente/irreversível. 'warning' = reversível (ex: inativar). */
   variant?: 'danger' | 'warning';
   loading?: boolean;
+  /** Erro retornado pela última tentativa de confirmar (ex: bloqueio por dependência). */
+  error?: string | null;
 }
 
 export function ConfirmDialog({
@@ -25,6 +27,7 @@ export function ConfirmDialog({
   cancelLabel = 'Cancelar',
   variant = 'warning',
   loading = false,
+  error,
 }: ConfirmDialogProps) {
   const isDanger = variant === 'danger';
 
@@ -43,6 +46,13 @@ export function ConfirmDialog({
           )}
           <p className="text-sm leading-relaxed">{description}</p>
         </div>
+
+        {error && (
+          <div className="flex gap-md p-lg rounded-md border bg-danger-50 border-danger-200 text-danger-700">
+            <AlertTriangle size={20} className="flex-shrink-0 mt-xs" />
+            <p className="text-sm leading-relaxed">{error}</p>
+          </div>
+        )}
 
         <div className="flex justify-end gap-md">
           <Button variant="secondary" onClick={() => onOpenChange(false)} disabled={loading}>

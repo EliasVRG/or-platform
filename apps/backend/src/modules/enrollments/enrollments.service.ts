@@ -61,12 +61,8 @@ export class EnrollmentsService {
       studentId: createEnrollmentDto.studentId,
       courseId: createEnrollmentDto.courseId,
       status: createEnrollmentDto.status || 'pending',
-      startDate: createEnrollmentDto.startDate
-        ? new Date(createEnrollmentDto.startDate)
-        : undefined,
-      endDate: createEnrollmentDto.endDate
-        ? new Date(createEnrollmentDto.endDate)
-        : undefined,
+      startDate: createEnrollmentDto.startDate ?? undefined,
+      endDate: createEnrollmentDto.endDate ?? undefined,
     });
 
     // save() não recarrega as relações eager; buscamos novamente para que a
@@ -170,11 +166,11 @@ export class EnrollmentsService {
     }
 
     if (updateEnrollmentDto.startDate) {
-      data.startDate = new Date(updateEnrollmentDto.startDate);
+      data.startDate = updateEnrollmentDto.startDate;
     }
 
     if (updateEnrollmentDto.endDate) {
-      data.endDate = new Date(updateEnrollmentDto.endDate);
+      data.endDate = updateEnrollmentDto.endDate;
     }
 
     return this.enrollmentsRepository.updateEnrollment(id, data);

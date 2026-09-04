@@ -30,11 +30,15 @@ export class Enrollment {
   @Column({ type: 'varchar', length: 50, default: 'pending' })
   status: 'pending' | 'active' | 'canceled' | 'completed';
 
+  // Tipado como string ("YYYY-MM-DD"), não Date: TypeORM serializa colunas
+  // `date` usando os métodos LOCAIS do objeto Date (getFullYear/getMonth/getDate,
+  // não a versão UTC), o que desloca o dia em um timezone negativo. Passar a
+  // string direto evita qualquer conversão de timezone.
   @Column({ type: 'date', nullable: true })
-  startDate: Date;
+  startDate: string | null;
 
   @Column({ type: 'date', nullable: true })
-  endDate: Date;
+  endDate: string | null;
 
   @CreateDateColumn()
   createdAt: Date;

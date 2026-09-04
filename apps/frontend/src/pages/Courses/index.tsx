@@ -109,9 +109,9 @@ export function Courses() {
             </select>
           </div>
 
-          {(error || actionError) && (
+          {error && (
             <div className="p-lg bg-danger-50 text-danger-700 rounded-md border border-danger-200">
-              {error || actionError}
+              {error}
             </div>
           )}
 
@@ -182,9 +182,14 @@ export function Courses() {
 
       <Dialog
         open={openDialog}
-        onOpenChange={setOpenDialog}
+        onOpenChange={(open) => { setOpenDialog(open); if (!open) setActionError(null); }}
         title={selectedCourse ? 'Editar Curso' : 'Novo Curso'}
       >
+        {actionError && (
+          <div className="mb-lg p-lg bg-danger-50 text-danger-700 rounded-md border border-danger-200 text-sm">
+            {actionError}
+          </div>
+        )}
         <CourseForm
           course={selectedCourse}
           onSubmit={handleSubmit}
@@ -194,9 +199,10 @@ export function Courses() {
 
       <ConfirmDialog
         open={confirmTarget !== null}
-        onOpenChange={(open) => !open && setConfirmTarget(null)}
+        onOpenChange={(open) => { if (!open) { setConfirmTarget(null); setActionError(null); } }}
         onConfirm={handleConfirmDelete}
         loading={confirmLoading}
+        error={actionError}
         variant={confirmTarget?.mode === 'hard' ? 'danger' : 'warning'}
         title={confirmTarget?.mode === 'hard' ? 'Excluir permanentemente' : 'Inativar curso'}
         description={

@@ -51,7 +51,7 @@ describe('EnrollmentsService', () => {
     studentId: 'student-123',
     courseId: 'course-123',
     status: 'active' as const,
-    startDate: new Date(),
+    startDate: '2026-05-01',
     endDate: null as any,
     createdAt: new Date(),
     updatedAt: new Date(),
