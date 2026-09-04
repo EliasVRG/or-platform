@@ -5,45 +5,26 @@ on:
     branches: [master]
     paths:
       - 'apps/backend/**'
-      - '.github/workflows/backend.yml'
   pull_request:
     branches: [master]
     paths:
       - 'apps/backend/**'
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v3
+      - uses: pnpm/action-setup@v3
         with:
           version: 11
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: 'pnpm'
-          cache-dependency-path: 'pnpm-lock.yaml'
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile --shamefully-hoist
+      - run: pnpm install --frozen-lockfile
 
-      - name: Build backend
-        run: pnpm --filter backend build
-
-      - name: Build frontend
-        run: pnpm --filter frontend build
-        env:
-          VITE_API_URL: https://backend-production-56857.up.railway.app/api
-
-      - name: Deploy to Railway
-        if: github.ref == 'refs/heads/master'
-        uses: railway-app/deploy-action@v1
-        with:
-          token: ${{ secrets.RAILWAY_TOKEN }}
-          service: backend
-          project-id: ${{ secrets.RAILWAY_PROJECT_ID }}
+      - run: pnpm --filter backend build

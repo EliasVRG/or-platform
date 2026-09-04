@@ -5,48 +5,28 @@ on:
     branches: [master]
     paths:
       - 'apps/frontend/**'
-      - '.github/workflows/frontend.yml'
   pull_request:
     branches: [master]
     paths:
       - 'apps/frontend/**'
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v3
+      - uses: pnpm/action-setup@v3
         with:
           version: 11
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: 'pnpm'
-          cache-dependency-path: 'pnpm-lock.yaml'
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile --shamefully-hoist
+      - run: pnpm install --frozen-lockfile
 
-      - name: Build frontend
-        working-directory: apps/frontend
-        run: pnpm build
+      - run: pnpm --filter frontend build
         env:
-          VITE_API_URL: ${{ secrets.VITE_API_URL }}
-          NODE_ENV: development
-
-      - name: Deploy to Netlify
-        if: github.ref == 'refs/heads/master'
-        uses: nwtgck/actions-netlify@v3
-        with:
-          publish-dir: 'apps/frontend/dist'
-          production-branch: master
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          deploy-message: "Deploy from GitHub Actions"
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          VITE_API_URL: https://backend-production-56857.up.railway.app/api
