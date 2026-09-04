@@ -39,12 +39,3 @@ jobs:
         run: pnpm --filter frontend build
         env:
           VITE_API_URL: https://backend-production-56857.up.railway.app/api
-
-      - name: Deploy to Railway
-        if: github.ref == 'refs/heads/master'
-        run: |
-          npm install -g @railway/cli
-          railway up --service backend --detach
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
