@@ -296,6 +296,43 @@ NODE_ENV=production pnpm start
 O frontend buildado pode ser servido por qualquer servidor web estático.
 O backend roda em Node.js.
 
+## Configuração de Ambiente
+
+### Frontend - Variáveis de Ambiente
+
+O frontend usa `VITE_API_URL` para apontar para o backend:
+
+**Desenvolvimento:**
+```
+VITE_API_URL=http://localhost:3000/api
+```
+
+**Produção (Netlify):**
+```
+VITE_API_URL=https://backend-production-56857.up.railway.app/api
+```
+
+Configure a variável de ambiente no Netlify:
+1. Acesse seu site no Netlify
+2. Site Settings → Build & Deploy → Environment
+3. Adicione variável: `VITE_API_URL` com a URL do backend em produção
+
+### Backend - Variáveis de Ambiente
+
+Variáveis principais para produção:
+```
+NODE_ENV=production
+APP_PORT=3000
+DB_HOST=seu-postgres-host
+DB_PORT=5432
+DB_USER=seu-usuario
+DB_PASSWORD=sua-senha
+DB_NAME=seu-banco
+CORS_ORIGIN=https://or-platform-frontend.netlify.app
+```
+
+Configure no Railway via dashboard ou arquivo `.env`.
+
 ## Notas de Entrevista
 
 - Projeto segue SOLID Principles (Single Responsibility, Dependency Injection)
