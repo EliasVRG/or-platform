@@ -27,6 +27,8 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - run: pnpm --filter frontend build
+      - name: Build frontend
+        run: pnpm build
+        working-directory: apps/frontend
         env:
           VITE_API_URL: https://backend-production-56857.up.railway.app/api
