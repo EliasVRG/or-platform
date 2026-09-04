@@ -2,6 +2,14 @@
 
 Sistema de gestão de cursos e matrículas de estudantes. Projeto CRUD completo desenvolvido com arquitetura profissional, validação de negócio, e interface responsiva.
 
+## Ambientes em Produção
+
+- **Frontend**: https://or-platform-frontend.netlify.app
+- **Backend (API)**: https://backend-production-56857.up.railway.app/api
+- **Swagger**: https://backend-production-56857.up.railway.app/api/docs
+
+Hospedagem: frontend no Netlify, backend e PostgreSQL no Railway. Deploy automático a cada push na branch `master` (integração nativa GitHub → Railway/Netlify).
+
 ## Visão Geral
 
 Aplicação monolítica para instituições de ensino gerenciarem:
@@ -296,11 +304,22 @@ NODE_ENV=production pnpm start
 O frontend buildado pode ser servido por qualquer servidor web estático.
 O backend roda em Node.js.
 
+### CI/CD
+
+GitHub Actions (`.github/workflows/`) roda build de validação (install + build) a cada push/PR em `master`, para ambos os apps. O deploy em si é feito pela integração nativa GitHub do Railway (backend) e do Netlify (frontend) — cada um observa o repositório e builda/publica automaticamente quando detecta um push relevante:
+
+- Railway observa mudanças em `apps/backend/**`, `pnpm-lock.yaml`, `pnpm-workspace.yaml` e `package.json` (root)
+- Netlify observa mudanças em `apps/frontend/**` e `netlify.toml`
+
+### Schema do Banco
+
+O projeto não usa migrations versionadas — o schema é gerado via `synchronize` do TypeORM, habilitado apenas quando `NODE_ENV=development`. Em produção (`NODE_ENV=production`), o `synchronize` fica desligado por segurança (evita alterações destrutivas automáticas em dados reais). Isso significa que, ao provisionar um banco novo do zero, é necessário criar as tabelas manualmente rodando a aplicação uma vez com `NODE_ENV=development` (ou migrar para TypeORM migrations formais).
+
 ## Configuração de Ambiente
 
 ### Frontend - Variáveis de Ambiente
 
-O frontend usa `VITE_API_URL` para apontar para o backend:
+O frontend usa `VITE_API_URL` para apontar para o backend. Por ser lida em build-time pelo Vite, qualquer alteração exige um novo build (redeploy).
 
 **Desenvolvimento:**
 ```
@@ -312,26 +331,33 @@ VITE_API_URL=http://localhost:3000/api
 VITE_API_URL=https://backend-production-56857.up.railway.app/api
 ```
 
-Configure a variável de ambiente no Netlify:
-1. Acesse seu site no Netlify
-2. Site Settings → Build & Deploy → Environment
-3. Adicione variável: `VITE_API_URL` com a URL do backend em produção
+Configurado no Netlify em:
+Site configuration → Environment variables → `VITE_API_URL`
+
+Após alterar, é necessário rodar **Trigger deploy → Clear cache and deploy site**, já que o valor fica embutido no bundle JS gerado pelo Vite.
 
 ### Backend - Variáveis de Ambiente
 
-Variáveis principais para produção:
+Configuradas no Railway (Service `backend` → Variables):
+
 ```
 NODE_ENV=production
-APP_PORT=3000
-DB_HOST=seu-postgres-host
+PORT=3000
+DB_HOST=<host interno do Postgres>
 DB_PORT=5432
-DB_USER=seu-usuario
-DB_PASSWORD=sua-senha
-DB_NAME=seu-banco
+DB_USER=postgres
+DB_PASSWORD=<senha do Postgres>
+DB_NAME=railway
 CORS_ORIGIN=https://or-platform-frontend.netlify.app
 ```
 
-Configure no Railway via dashboard ou arquivo `.env`.
+Em produção, `DB_HOST`/`DB_PORT`/`DB_USER`/`DB_PASSWORD`/`DB_NAME` são referências de variável do Railway (`${{Postgres.PGHOST}}`, etc.) em vez de valores fixos — assim, se o serviço Postgres for recriado ou a senha rotacionar, o backend recebe o valor atualizado automaticamente no próximo deploy.
+
+**Atenção**: o código lê `DB_PASSWORD` (não `DB_PASS`) em `app.module.ts`. Um nome de variável divergente aqui derruba a conexão silenciosamente (cai no valor default e falha autenticação).
+
+### CORS
+
+`CORS_ORIGIN` deve ser exatamente a origin do frontend (sem barra final). Qualquer mudança de domínio do Netlify exige atualizar essa variável e redeployar o backend.
 
 ## Notas de Entrevista
 
