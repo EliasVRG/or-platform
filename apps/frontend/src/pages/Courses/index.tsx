@@ -86,13 +86,13 @@ export function Courses() {
           {/* Filters */}
           <div className="flex flex-col sm:flex-row gap-lg">
             <div className="flex-1 relative">
-              <Search size={18} className="absolute left-md top-1/2 transform -translate-y-1/2 text-neutral-400 pointer-events-none" />
+              <Search size={18} className="absolute left-lg top-1/2 transform -translate-y-1/2 text-neutral-400 pointer-events-none" />
               <input
                 type="text"
                 placeholder="Buscar curso..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-lg pr-md py-md border border-neutral-300 rounded-md focus:ring-2 focus:ring-brand-600 focus:border-transparent"
+                className="w-full pl-3xl pr-md py-md border border-neutral-300 rounded-md focus:ring-2 focus:ring-brand-600 focus:border-transparent"
               />
             </div>
             <select
