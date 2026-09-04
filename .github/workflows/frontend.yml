@@ -5,10 +5,12 @@ on:
     branches: [master]
     paths:
       - 'apps/frontend/**'
+      - 'netlify.toml'
   pull_request:
     branches: [master]
     paths:
       - 'apps/frontend/**'
+      - 'netlify.toml'
 
 jobs:
   build:
